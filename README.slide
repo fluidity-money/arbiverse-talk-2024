@@ -1,0 +1,744 @@
+
+# Building a Lending Protocol that Powers a Yield-bearing Stablecoin Using Stylus
+
+// HOW TO VIEW THIS PRESENTATION: go get golang.org/x/tools/present
+
+A workshop.
+
+bayge
+CTO, Fluidity Labs (Superposition, Fluidity Money)
+alex@superposition.so
+https://superposition.so
+@baygeeth
+https://github.com/af-afk/arbiverse-talk
+
+## Disclaimers
+
+1. None of this is financial advice
+2. I am not convincing you to use any products
+3. This is a purely technical workshop
+
+: I feel the need to include this based on the Thai government's rules
+: around this.
+
+## The format of this workshop
+
+1. Quick setup: pulling down repo
+2. Overview of Stylus: how does it work? High level overview (10 mins)
+3. Overview of lending protocols: how do they work? How do some compare? (10 mins)
+4. Overview of stablecoins: what's it like out there? How do some compare? (10 mins)
+5. Building the lending protocol
+
+: Setup of the repo is pulling down a repo with a QR code I will
+: provide. The repo will include a qcow2 and vdk image, so a virtual
+: machine could be run with the code. A SSH'able will also be provided
+: based on the test virtual machine for those who struggle with the before.
+
+: This is the flow and my goals for this workshop:
+
+: 1. Provide people with a lot of time to set up their stuff with a
+: architecture review, and history/math lesson. I'm going to ask them to
+: set themselves up while I speak basically. I won't bother to make sure
+: they're paying attention or anything. This is free time for them to take a
+: stab at everything I hope!
+
+: 2. Their goal is to get invariants that I hope will teach them about
+: Stylus and Rust completed with a automated test suite. This test suite
+: will randomly slam their code. Their goal is to get it working.
+
+: 3. For each invariant they get working, which I will eventually begin to
+: review on the screen, they will get a gold star in a box. I will provide
+: them with a reference implementation. For the icing on the cake, certain
+: functions will need to be implemented by them.
+
+: 4. Hopefully by thy end they understand how to do development in Rust Stylus!
+
+## Quick setup (repo download)
+
+.image qr-repo.png
+
+Clone with Git
+
+.link https://github.com/af-afk/talk-arbiverse-13-11-24
+
+: Links to a repo with all of the code we're working with, these slides,
+: and virtual machine images.
+
+: We're going to move this with time capped at 10 minutes.
+
+## Quick setup (installation)
+
+.html quick-setup-installation.html
+
+: Capping this stage at 5 minutes. Hopefully people are energised to
+: move fast on this. Make it clear that they'll have time to
+: install everything while I'm setting the scene.
+
+: For the remote host, we will connect people to either a SSH environment,
+: or a VNC environment via the webvnc interface. This will save us from
+: having a situation where someone is absolutely unable to follow along. I
+: will ask them to come up to me to provision them access. I will leverage
+: adduser(8) for them. I will battle test and make seamless this approach.
+
+## Quick setup (overview of Rust 1)
+
+.code overview-rust-1.rs
+
+: Not going to focus on the ownership/borrowing behaviour so much.
+
+## Quick setup (overview of Rust 2)
+
+.code overview-rust-2.rs
+
+## Quick setup (overview of Rust 3)
+
+.code overview-rust-3.rs
+
+## Overview of Stylus (intro to the EVM)
+
+.image overview-of-stylus-evm.svg
+
+## Overview of Stylus (EVM lifecycle expanded)
+
+1. Node gets from, to, gas limit, and calldata from transaction.
+2. Begins executing EVM code at to with the info that's in the transaction.
+
+: This is not exactly true, but I'm going to gloss over that for purposes
+: of explaining how MultiVM differs.
+
+## Overview of Stylus (EVM lifecycle expanded)
+
+	// SPDX-License-Identifier: MIT
+	pragma solidity 0.8.20;
+
+	contract HelloWorld {
+	    uint256 public counter;		// Generates selector 0x61bc221a.
+	    function increment() external {	// Generates selector 0xd09de08a.
+	        counter++;			// Uses a SLOAD and SSTORE operation.
+	    }
+	}
+
+Generates bytecode equivalent to (simplified and unoptimised):
+
+	0x0    calldataload            // Loads calldata to the stack.
+	0xE0   shr                     // Shifts calldata to get the selector.
+	dup0                           // Dupe the selector part of the calldata.
+	0x61bc221a eq COUNTER jumpi    // Jump to the counter code.
+	0xd09de08a eq INCREMENT jumpi  // Jump to the increment code.
+	0x0 0x0 revert                 // We didn't match a selector! Revert!
+	COUNTER:                       // Jump table offset for the counter view.
+		0x0 0x0 sload              // Load the first slot in storage to the stack.
+		mstore                     // Store in memory to return.
+		return                     // Actually return the current value.
+
+: Introducing some operations that are available to the EVM. Including
+: SLOAD, SSTORE, and CALLDATALOAD. Explain how the memory
+: operations are semantically linked to the traditional EVM, and that
+: it's the equivalent of heap memory. Does not include a lot of stuff.
+: Note that this is Huff-like syntax, so literal storing of numbers on
+: the stack is done with a push operation that I'm glazing over.
+: Touch very lightly on what memory is, referring to it explicitly as
+: the scratchpad in the hopes that things make sense.
+
+## Overview of Stylus (EVM lifecycle expanded)
+
+.code overview-of-stylus-evm.huff
+
+## Overview of Stylus (EVM lifecycle expanded)
+
+The storage trie:
+
+.image overview-of-stylus-storage-highlevel.svg
+
+: It's important to touch on that storage is a key * value map, and that
+: the key is a 32 bit word. The following is the actual use of this!
+
+.image overview-of-stylus-storage-overview.svg
+
+## Overview of Stylus (EVM lifecycle expanded)
+
+The classic EVM lifeycle:
+
+1. The node takes the to, from, calldata, gas limit from the transaction.
+2. The node emulates the EVM.
+3. The node persists the outcome of certain operations (including SSTORE).
+
+: Recapping what we briefly touched on in the past few slides. This is
+: EVM basics, but it's better to ensure that everyone is following along
+: before continuing. It's also important to clarify that logging is not
+: included in the above example, as well as anything involving nonces,
+: verification that transactions are legit, making sure you have enough
+: gas for the transaction.
+
+: I guess that the messaging I'm going for here is that the EVM really is
+: about storage slot manipulation.
+
+## Overview of Stylus (MultiVM introduction)
+
+//diff -u O overview-of-stylus-classic.txt overview-of-stylus-multivm.txt > patch
+//diff2html -i file --format html -o stdout --su hidden -- patch >overview-of-stylus-multivm-inside.html
+// Edit the HTMl to remove the header.
+
+.html overview-of-stylus-multivm.html
+
+: Literally, the Arbitrum node sometimes chooses to emulate compiled
+: code that's related to a specific address.
+
+## Overview of Stylus (MultiVM introduction)
+
+Why WASM?
+
+: Why develop with WASM Stylus?
+
+1. Open specification that's constantly evolving.
+2. Other programming language and optimisation pipelines produce WASM code.
+3. Access a broader ecosystem of thirdparty tools.
+
+: 1. Note that the open specification includes extensions for complex
+: operations (single instruction multiple data operations, bulk memory
+: operations). It also means less development work from the industry to
+: maintain and extend. Note that processors are better with doing lots
+: at once due to internal pipelining and parallelism operations. Note
+: that there are a plethora of bytecode interpreters that do ahead of
+: time compilation to native code. Note that the EVM is not inherently
+: suitable for functional programming, due to the lack of tail call
+: optimisation. Note that the EVM lacks the static jumps and
+: needs to go through a process of enhancing the spec for the EVM to
+: include stuff like the EOF. Note that the EVM will never be optimised
+: at leveraging the processor to its fullest extent, which imo is more of
+: a philosophical discussion as to whether that's important.
+
+: 2. Note that other programming language optimisation pipelines (LLVM)
+: benefit from decades of experience with producing optimised bytecode.
+: Note that there are more instrumentation tools to profile code. Note
+: that business logic fuzzing is possible in the native host with multiple
+: backends, so it's faster to do. With the WASM target, you can also leverage
+: programming language features including Rust's ownership and borrowing rules.
+
+: 3. With Stylus you can simply bring in thirdparty libraries, including
+: cryptography libraries, that might be unavailable to classic Solidity/EVM
+: users.
+
+## Overview of lending protocols (how does Compound V2 work?)
+
+: This is what I'm going to use to introduce lending protocols:
+
+Some math
+
+: Compound is one of the oldest lending protocols. 1 and 2 are compared
+: equivalently for our conversation since from what I understand V1
+: and V2's transition was mostly semantics related to the protocol's
+: execution, and the addition of the cToken concept.
+
+: It's seen three iterations, with Compound V1 and V2 simply, and
+: algorithmically, setting interest rates based on supply and demand. Assets
+: are lent to the pool instead of peer to peer. Assets lent are returned
+: a fungible form called cTokens in V2, which are gradually convertible to
+: more of the underlying asset based on borrowed amounts. This is a reused
+: fundamental principle across the various lending protocols. Borrowers must
+: pay an amount of interest that accrues gradually from their collateral,
+: with that rate being set by something called the utilisation rate, which
+: is the share of tokens being borrowed versus supplied, and a rate being
+: negotiated by the DAO. Compound V2 maintains an exchange rate for the
+: ctoken for the market that you're in that's almost like an option you
+: could exercise.  Compound compounds interest accrued between interactions.
+
+.caption Only the borrower volatile math without the curve, no fees
+.code overview-of-lending-protocols-compound-v1-1.py 0,/E_/
+
+## Overview of lending protocols (how does Compound V2 work?)
+
+.image overview-of-lending-protocols-compound-v1-diagram.svg
+
+//strict digraph {
+//	Borrower -> Pool [label="Supplies collateral.\nPays interest rate (I_a)."]
+//	Pool -> Borrower [label="Supplies assets."]
+//	Supplier -> Pool [label="Supplies assets.\nPays interest rate from borrower - reserve_a."]
+//}
+
+- Borrowers supply collateralisation, and receive assets in exchange from suppliers.
+- Interest rate is calculated by the borrowing interest rate, which is calculated by the
+utilisation rate.
+- Borrowers pay this interest rate.
+- Suppliers receive the accumulated interest.
+
+: I'm not going to touch immediately on how liquidation works except
+: in passing and verbally, other than explaining that if you don't pay
+: interest on your loan, and you go below the amount that's considered
+: safe by the protocol with respect to your collateral, then someone will
+: call a function that will liquidate you.
+
+## Overview of lending protocols (how does Compound V3 work?)
+
+1. Single asset can be borrowed. Different markets UX.
+2. Different interest rate for borrowing and supplying, governed by the DAO.
+3. UX improvements.
+4. Conversion of assets when liquidated to USDC.
+
+.image logo-compound.png 200 0
+
+: Assets can be comingled so that a single asset can be borrowed, with
+: the collateral made up of different tokens. This means that you could
+: borrow ETH with assets from other tokens.
+
+: The different interest rate for borrowing and supplying are configured by the
+: DAO.
+
+: UX improvements in this context include a whitelisting feature to delegate
+: responsibilties associated with your address, like repaying loans.
+: I'm not going to explore how this changed since the changes were architectural,
+: and the math we showed earlier hasn't changed (afaik?)
+
+## Overview of lending protocols (how does Compound V3 work?)
+
+.image overview-of-lending-protocols-compound.png 500 0
+
+## Overview of lending protocols (how does AAVE work?)
+
+: AAVE is seen as a disrupter when compared to Compound. On top of a
+: different pool model of borrowing a single asset, it has some unique
+: features including a cross-chain transfer feature called portal, which its
+: governance is connected to, a broader range of assets, an isolated pool
+: feature (typically for new assets) for borrowing a few USD stablecoins
+: alongside a mode called "siloed mode", and "efficiency mode" the option
+: to leverage a stable interest rate model, compared to a variable rate. It
+: features a "safety module" where stakers stake tokens which are used as
+: collateral in shortfall events. The function of the exchange rate system
+: is similar with the increase of an exchange rate of assets that can be
+: redeemed. The stable interest rate loan is more expensive, but more
+: predictable financing. Also the UX of the token that represents pool
+: participation is different, with aToken being simply the token that you
+: have in the pool.
+
+- Stable and variable rate loans
+- Siloed mode
+- Efficiency mode
+- Safety module
+- Utilisation function
+- Single asset pool
+
+.image logo-aave.png 50 0
+
+: There is a lot of math here. I understand the mechanics involving the
+: stable debt, but I  don't think it's so important that we focus on that here.
+
+: The common theme here compared to Compound really is the use of the
+: utilisation function, with some different UX mechanics for how information
+: is presented externally, as well as the support for different types of
+: technologies that can be run on top. AAVE itself is quite complex, and it
+: has many features. The main thing from a UX perspective between Compound
+: and AAVE is the single asset that can be reused across multiple pools.
+
+## Overview of lending protocols (how does Morpho Blue work?)
+
+: Now that we've touched on the super dominant players, let's look at some exotic
+: takes on lending protocols. We're going to quickly burst through these
+: until we make it to the end, where we will begin finally implementing
+: the lending protocol (and stablecoin).
+
+: Morpho Blue is a departure from the permissioned by a DAO approach to
+: assets added. Morpho Blue differs in that the governance prebakes some of
+: what they refer to as their Loan-to-Value and Liquidation Loan-To-Value
+: ratio, which can be used to permissionlessly create markets. Also instead
+: of an insurance fund approach that AAVE has taken, bad debt is taken
+: from all lenders.
+
+- Liquidation Incentive Layer
+- Permissionless creation of markets
+- Collateral is not lent out
+- Losses are distributed amongst lenders with bad debt
+
+: I want to make clear that this is probably a gross oversimplification
+: of Morpho Blue. I get the feeling there's a lot of innovation happening
+: in this concept, especially with how Morpho are posturing themselves
+: with AAVE, and how it seems some risk management teams broke off
+: here. I know that there is some adaptive rate discovery similar to Ajna
+: at play but I haven't done the legwork to know how it works yet.
+
+.image logo-morpho.png 50 0
+
+## Overview of lending protocols (how does Agilerate work?)
+
+: A supply and demand curve is used for lending assets, and an interest
+: rate controller is used that adjusts the interest rate depending on
+: market conditions using a Recursive Least Squares algorithm.
+
+- Algorithmic interest rate controller
+
+: This is a paper, so there's no implementation of this concep that I've
+: seen so far. This might be a challenger product to AAVE someday,
+: if the interest rate optimisation is compelling enough.
+
+.image overview-of-lending-protocols-agilerate.png 200 0
+
+## Overview of lending protocols (how does Ajna work?)
+
+: Ajna is different in that it's entirely governance free without
+: oracles! Instead people create markets themselves. Ajna is based on
+: a AMM model, where a quote token, which is created by lenders, and a
+: collateral token, which is created by borrowers, is created. This is a
+: way to gauge the debt in the pool's value.
+
+: - Pools contain assets committed to price "buckets".
+
+: - Liquidity Provider Balance NFTs.
+
+: - Threshold Price: loan debt divided by collateral with extra margin
+: (4%). The value of the loan equalling the debt.
+
+: - Net interest margin: margin collected on loans stored in reserves.
+
+: - Lowest Utilised Price: lowest collateral price against current
+: borrows. Lowest bucket that's been borrowed.
+
+: - Highest Threshold Price: Threshold Price of the least collateralised
+: loan.
+
+: - Neutral Price: price of a loan at origin, and used as a liquidation
+: price.
+
+- No governance (no managers)
+- Create markets instantly. Interest and risk priced with AMM model
+- Onus of lending risk is extra on supplier
+
+: Buckets contain quote assets, which are the deposits, any collateral,
+: and any liquidity provider balances.
+
+: 1. A user supplies their token for lending at price ranges as what
+: they're willing to lend to. The value of the least collateralised loan
+: (either the Threshold Price, or the Lowest Utilised Price), is known as
+: the Highest Threshold Price. They get back LBP.
+
+: In order to remove the loan, the position must not move below the Highest
+: Threshold Price! If they want to do so, they have to manipulate the
+: market by calling a liquidation on loans below theirs.
+
+: 2. Assets lent above the Highest Threshold Price earn interest from
+: the amounts paid by borrowers. A user goes to borrow from the pool by
+: pledging collateral to the pool, and then by borrowing a quote token.
+: They can withdraw or add liquidity unless it would leave their loan
+: uncollateralised. Interest paid on the borrowing position is paid based
+: on the pool utilisation, so the more borrowers, the more returns.
+
+: 3. Borrowers that are undercollateralised compared to the Lowest
+: Utilisation Price can be liquidated.
+
+: I think the most interesting thing here is that you're trading
+: flexibility, and complexity, for easier access to emerging asset
+: lending. You can't pull out your position as a lender and lower the
+: value of the collateral for example.
+
+.image logo-ajna.svg 50 0
+
+## Overview of lending protocols (how does Ajna work?)
+
+.image overview-of-lending-protocols-ajna.png 500 0
+
+## Overview of lending protocols (Instadapp Fluid)
+
+: Lending protocol, and broader platform. The emphasis of Fluid is
+: on the highest Loan to Value ratio in the market (with 95% for ETH).
+: Unfortunately, these guys are using the same naming convention for their
+: assets as one of my projects (https:fluidity.money). Fluid is a hub and
+: spoke model for leveraging the liquidity that you supply.
+
+- Loan to Value based on liquidations
+
+: I'm putting aside the messaging with efficiencies in the above.  Instadapp
+: want you to use your liquidity in creative ways, so the focus is on a few
+: stablecoin markets. The interesting function here is the liquidation system,
+: which is spookily similar to Ajna's value system. The debt to collateral
+: ratio is the mechanism used for the liqudiation system. There's a branching
+: model here with the debt that I don't fully understand.
+
+.image logo-fluid.svg 150 0
+
+## Overview of lending protocols (how do they all stack up?)
+
+: Understanding the various lending protocols is useful using three systems:
+
+: 1. Complexity versus simplicity, and illiquid positions versus liquid
+: positions
+:
+: 2. Few markets versus many markets, and simple UX versus complex UX
+:
+: 3. Short-term directed accumulation of knowledge versus long-term
+
+: I need to explain the third metric. Are single entity risk managers better
+: than multiple? You would prefer the latter, naturally, as opportunity
+: to diversify breeds specialisation for different asset types (as the
+: space matures). But it's difficult to growth hack I think. Would we have
+: Morpho Blue without AAVE accumulating wisdom in its DAO with a centralised
+: model with its risk managers? Naturally, Morpho wouldn't have so much if
+: it weren't for the managers looking to maximise their ROI with a model
+: that lets them manage their risk directly. But they might not have the
+: opportunity to have done so if AAVE had pioneered this model from day
+: 1. I see this as the problem for Ajna's adoption, it's really cool,
+: but relatively speaking, it's not being adopted as much as Compound
+: or AAVE, putting aside the name brand value, as its a complex concept,
+: and model. It's a model that needs a manager level being built on top in
+: the short term, until the industry matures enough to manage it itself
+: as the supply side holistically. Instadapp commercialising multiple
+: products under the same hat makes a lot of sense with this view. So I
+: look at things as short-term knowledge accumulation versus long-term,
+: as naturally, the competitive forces will push people towards specialised
+: risk managers.
+
+: Compound and AAVE are the more flexible from a borrower and supplier's
+: perspective, at the expense of a lack of flexibility with the assets,
+: but to the benefit of complexity, and relative to Compound for AAVE,
+: capital efficiency. Positions are fully liquid, with not so much ongoing
+: maintenance needed for the position management perspective.  You might
+: say that Compound and AAVE are very growth hack friendly. You might
+: argue that inherently a DAO system is superior, since you could build in
+: custom controllers that react algorithmically to changes that simply vote via the
+: DAO. Compound and AAVE are the pioneers of this model.
+
+: Instadapp is easier to growthhack imo, despite sharing some similarities
+: with Ajna. Price discovery liquidity isn't developed day 1 without seeding
+: it with vested expertise in the latter, but it is in Instadapp, with the
+: oracle system. The growthhacking element is also interesting in how they
+: posture themselves as a self-fulfilling flywheel broadly speaking.
+
+.html overview-of-lending-protocols-how-do-they-stack-up.html
+
+## Overview of stablecoins (the different types)
+
+1. Overcollateralised (backed)
+2. Undercollateralised (algorithmic)
+
+: I refer to backed stablecoins like USDC, USDT (in theory) as
+: "overcollateralised" assets. This is due to the availability of the
+: collateral outstripping the demand/utilisation of the pegged asset.
+
+: "Undercollateralised" stablecoins are pegged assets where the underlying
+: asset is optionally lent out, backed by a basket of assets, or pegged
+: algorithmically to the value of another asset. These, in my non-mainstream
+: nomenclature, should be considered undercollateralised since the market
+: value is either less than or equal to the value of the pegged asset at
+: any time. This might be due to the ratio of users versus liquidity in practice.
+
+## Overview of stablecoins (how do stablecoins work with lending protocols?)
+
+.image overview-of-stablecoins-lending-protocols.svg 400 0
+
+## Overview of stablecoins (how does LUSD work?)
+
+: So far we've reviewed innovation in the lending market space related
+: to the market design for the purposes of our discussion.
+
+1. 0% interest on loans
+2. Loans repaid using a algo stablecoin
+
+: So the one 0% interest on loans works with a one time fee for redemption
+: and borrowing. To get LUSD, you pay a small upfront amount.
+
+: I'd be remiss without touching on Liquity's V2 evolution, the BOLD
+: stablecoin. The most notable differences are that this functions with
+: multiple types of collateral, and that there's a custom interest rate
+: that borrowers can set.
+
+## Overview of stablecoins (how does LUSD work?)
+
+: Imagine a situation where you borrow $200 with a collateral of $190. :
+: You supply that much worth of ARB. The system checks the value of what :
+: you supplied using an oracle, and it records that. You get back $200 of :
+: AUSD. You must now pay an interest of 5%, and you must make sure that
+: : your collateral never goes below a value 110% of what you borrowed,
+: and you borrowed 105% collateral here. If you can do so, then you get to
+: keep your money. If the value of what you have goes below your collateral
+: requirement, then it creates a situation where the protocol must field
+: some bad debt. Ordinarily, in the Compound/AAVE situation, a fund has
+: been created to protect the protocol from this. Morpho socialises the
+: debt (if I'm recalling correctly) without said fund, and Ajna I can't
+: remember. The classic liquidation logic that we learned about earlier,
+: as well as some of the ideas that we have apply. If the value of ARB
+: were to rise, then you would collect more for your AUSD, since internally
+: the accounting is such that you would make money.
+
+: I guess to simplify this, it's almost like you lend to the protocol, and it gives
+: you back a token to spend your debt effectively, and it's almost like you don't
+: get anything back!
+
+1. User supplies $200 in collateral, priced by a oracle.
+2. User gets back $200 LUSD.
+3. User must maintain the debt.
+
+## Building the lending protocol and stablecoin (the goals)
+
+1. Lend Staked ARB
+2. Receive AUSD (Arb USD)
+3. We don't pay the upfront fee, instead we pay ongoing interest
+
+: Staked ARB USD will be a fun little stablecoin built on a relatively
+: simple lending system. AUSD could be a infrastructure token that you
+: take advantage of to supply liquidity to 9lives' Infrastructure Markets
+: (the simple oracle). It would be a lot better to actually take a one time
+: fee, since we want to disincentivise liquidity going to and from the
+: token, and we're not doing lending for the purposes of lending, but I
+: want to keep things simple for this workshop.
+
+Infrastructure
+
+1. A stablecoin with exposure to ARB means native yield for infra providers
+2. Ongoing interest will make the stablecoin productive
+
+: So we can subsidise fee-free infrastructure providers who stake their
+: assets without building that into the infrastructure toplevel. In the
+: 9lives context, we will have a native oracle that works for something
+: called a "URL committee", and a "product committee". These participants
+: will stake their AUSD to play the game, and with this system we won't
+: have to pay them fees!
+
+: Ongoing interest will keep the stablecoin productive. This isn't
+: necessarily a good thing, since idle liquidity earning yield is productive
+: in a sense that it could be LP in a pool that needs bootstrapping. But,
+: we hope that this mechanism will actually work for us in a good way, since
+: this isn't a consumer-facing stablecoin so to speak. With this mechanism,
+: someone looking to build a product without any native incentives needing
+: staking using ARB don't have to worry about anything! Since the ongoing
+: interest fee will mean only the strongest will survive in the system
+: for this token, which will punish idlers, but the ARB upside will
+: attract users!
+
+## Building the lending protocol and stablecoin (the goals)
+
+1. Staker infra is needed
+2. We want exposure to ARB
+3. This is not a consumer-facing stablecoin
+
+: Punishing users that aren't productive is good for us since we can
+: eliminate people who aren't good at playing the infra game (so to
+: speak). This will ensure that people have to be making money if they
+: supply themselves to any derivative system. Also a native interest
+: payment like this could mean revenue opportunities for platforms that
+: use this token. Just recaping these facts in this slide.
+
+.image building-the-lending-protocol-and-stablecoin-goals.svg 400 0
+
+: This is the productive stablecoin!
+
+## Building the lending protocol and stablecoin (the primitives)
+
+1. Same mechanism as Liquity
+2. Simple Compound math
+
+## Building the lending protocol and stablecoin (part 1)
+
+: Great, we're finally doing things now! We need to first confirm that
+: everyone's development suite is fine.
+
+Build the "hello-world" crate.
+
+	cd crates/hello-world
+	make build
+
+^ If this exists with status 0, success!
+
+## Building the lending protocol and stablecoin (part 2)
+
+: The first instance of someone doing our main task. The goal is to get
+: the test suite passing.
+
+	cd crates/hello-world
+
+Get the "is_pet" function passing:
+
+	pub fn is_pet(c: Creature) -> bool {
+	    match c {
+	        Creature::Donkey => true,
+	        Creature::Dog | Creature::Human => false,
+	    }
+	}
+Success:
+
+	./tests.sh part-1
+
+## Building the lending protocol and stablecoin (how to test contracts)
+
+: Proptest is an automated way for confirming that code holds up against
+: invariants. : We'll be implementing variants in functions that check the
+: math and UX that we wrote. Proptest will come up with as many attempts as
+: it reasonably can, based on a concept called "shrinking", where a binary
+: search over the inputs is undertaken. The test code itself should break
+: if the invariant isn't okay.
+
+(This is in crates/fizzbuzzer)
+
+	#[storage]
+	#[entrypoint]
+	struct Fizzbuzzer {
+	    pub counter: StorageU256,
+	}
+
+	#[public]
+	impl Fizzbuzzer {
+	    pub fn ctor(&mut self, c: U256) -> Result<(), Vec<u8>> {
+	        self.counter.set(c);
+	        Ok(())
+	    }
+
+	    pub fn is_fizzbuzz(&self) -> Result<bool, Vec<u8>> {
+	        let c = self.counter.get();
+	        Ok((c % U256::from(3)).is_zero() && (c % U256::from(5)).is_zero())
+	    }
+	}
+
+: This is my opportunity as well to introduce the shape for public
+: functions. The way these things return is with raw revert data.
+: Just so everyone knows, I could construct a actual U256 with byte
+: data, but my fear is it's too confusing in front of a live studio audience.
+
+## Building the lending protocol and stablecoin (how to test contracts)
+
+	#[cfg(test)]
+	proptest! {
+	    #[motsu::test]
+	    fn test_contract_fizzbuzzer(num in any::<u128>()) {
+	        let mut c = unsafe { <Fizzbuzzer as stylus_sdk::storage::StorageType>::new(U256::ZERO, 0) };
+	        let num = U256::from(num);
+	        c.ctor(num).unwrap();
+	        let is_fizz = num % U256::from(3) == U256::ZERO;
+	        let is_buzz = num % U256::from(5) == U256::ZERO;
+	        assert_eq!(c.is_fizzbuzz().unwrap(), is_fizz && is_buzz);
+	    }
+	}
+
+: Motsu lets you use a fixture-like UX, but we haven't used this, so we're
+: compatible with the OZ macro.
+
+: What the WASM environment depends on are functions being exported that
+: let them use some of the EVM features like storage and logging. So what
+: motsu does is give you that.
+
+## Building the lending protocol and stablecoin (unit tests, end-to-end tests)
+
+: Currently, the testing story for Stylus is either a deployment, and
+: functional test with some scaffolding (warts and all), or offline testing
+: based on the host running environment. We're going to be doing the latter,
+: since we can't access proptest on the EVM.
+
+## Building the lending protocol and stablecoin (the design)
+
+// The design of the system would live here.
+
+## Building the lending protocol and stablecoin (the math)
+
+// The math of the system would live here
+
+## Building the lending protocol and stablecoin (a user story)
+
+1. Alex goes to mint some AUSD by supplying ARB to the protocol.
+2.
+
+reference.py contains a reference implementation of the math.
+
+## Building the lending protocol and stablecoin (part 3)
+
+// We need to get some simplistic math work here based on the primitives
+
+## Building the lending protocol and stablecoin (part 4)
+
+## Follow my frens
+
+.html follow-my-frens.html

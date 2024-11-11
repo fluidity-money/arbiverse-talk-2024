@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="446pt" height="368pt" viewBox="0.00 0.00 445.67 367.60">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 363.6)">
+<title>%0</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-363.6 441.6714,-363.6 441.6714,4 -4,4"/>
+<!-- Transaction -->
+<g id="node1" class="node">
+<title>Transaction</title>
+<ellipse fill="none" stroke="#000000" cx="196.9602" cy="-341.6" rx="56.7387" ry="18"/>
+<text text-anchor="middle" x="196.9602" y="-337.4" font-family="Times,serif" font-size="14.00" fill="#000000">Transaction</text>
+</g>
+<!-- Node -->
+<g id="node2" class="node">
+<title>Node</title>
+<ellipse fill="none" stroke="#000000" cx="196.9602" cy="-268.6" rx="31.9031" ry="18"/>
+<text text-anchor="middle" x="196.9602" y="-264.4" font-family="Times,serif" font-size="14.00" fill="#000000">Node</text>
+</g>
+<!-- Transaction&#45;&gt;Node -->
+<g id="edge1" class="edge">
+<title>Transaction-&gt;Node</title>
+<path fill="none" stroke="#000000" d="M196.9602,-323.5551C196.9602,-315.4828 196.9602,-305.7764 196.9602,-296.7817"/>
+<polygon fill="#000000" stroke="#000000" points="200.4603,-296.6903 196.9602,-286.6904 193.4603,-296.6904 200.4603,-296.6903"/>
+</g>
+<!-- From -->
+<g id="node3" class="node">
+<title>From</title>
+<ellipse fill="none" stroke="#000000" cx="31.9602" cy="-179.8" rx="31.9205" ry="18"/>
+<text text-anchor="middle" x="31.9602" y="-175.6" font-family="Times,serif" font-size="14.00" fill="#000000">From</text>
+</g>
+<!-- Node&#45;&gt;From -->
+<g id="edge2" class="edge">
+<title>Node-&gt;From</title>
+<path fill="none" stroke="#000000" d="M165.8733,-264.0926C140.6125,-259.328 104.8832,-250.0012 77.9672,-232.6 66.7996,-225.3801 56.7766,-214.6915 48.9586,-204.8161"/>
+<polygon fill="#000000" stroke="#000000" points="51.7417,-202.6936 42.9334,-196.806 46.1476,-206.9015 51.7417,-202.6936"/>
+<text text-anchor="middle" x="103.4567" y="-220" font-family="Times,serif" font-size="14.00" fill="#000000">Provides</text>
+</g>
+<!-- To -->
+<g id="node4" class="node">
+<title>To</title>
+<ellipse fill="none" stroke="#000000" cx="108.9602" cy="-179.8" rx="27" ry="18"/>
+<text text-anchor="middle" x="108.9602" y="-175.6" font-family="Times,serif" font-size="14.00" fill="#000000">To</text>
+</g>
+<!-- Node&#45;&gt;To -->
+<g id="edge3" class="edge">
+<title>Node-&gt;To</title>
+<path fill="none" stroke="#000000" d="M174.0995,-255.8161C164.1648,-249.5984 152.8041,-241.5369 143.9672,-232.6 136.1954,-224.7402 129.1305,-214.9142 123.4152,-205.877"/>
+<polygon fill="#000000" stroke="#000000" points="126.3417,-203.9527 118.1736,-197.2049 120.351,-207.5736 126.3417,-203.9527"/>
+<text text-anchor="middle" x="169.4567" y="-220" font-family="Times,serif" font-size="14.00" fill="#000000">Provides</text>
+</g>
+<!-- Calldata -->
+<g id="node5" class="node">
+<title>Calldata</title>
+<ellipse fill="none" stroke="#000000" cx="196.9602" cy="-179.8" rx="43.4338" ry="18"/>
+<text text-anchor="middle" x="196.9602" y="-175.6" font-family="Times,serif" font-size="14.00" fill="#000000">Calldata</text>
+</g>
+<!-- Node&#45;&gt;Calldata -->
+<g id="edge4" class="edge">
+<title>Node-&gt;Calldata</title>
+<path fill="none" stroke="#000000" d="M196.9602,-250.2006C196.9602,-238.0949 196.9602,-222.0076 196.9602,-208.2674"/>
+<polygon fill="#000000" stroke="#000000" points="200.4603,-207.872 196.9602,-197.872 193.4603,-207.8721 200.4603,-207.872"/>
+<text text-anchor="middle" x="221.4567" y="-220" font-family="Times,serif" font-size="14.00" fill="#000000">Provides</text>
+</g>
+<!-- Value -->
+<g id="node6" class="node">
+<title>Value</title>
+<ellipse fill="none" stroke="#000000" cx="291.9602" cy="-179.8" rx="34.1871" ry="18"/>
+<text text-anchor="middle" x="291.9602" y="-175.6" font-family="Times,serif" font-size="14.00" fill="#000000">Value</text>
+</g>
+<!-- Node&#45;&gt;Value -->
+<g id="edge5" class="edge">
+<title>Node-&gt;Value</title>
+<path fill="none" stroke="#000000" d="M219.2084,-255.6176C229.1355,-249.3047 240.6625,-241.2226 249.9602,-232.6 258.7713,-224.4287 267.2656,-214.3268 274.2819,-205.154"/>
+<polygon fill="#000000" stroke="#000000" points="277.1295,-207.19 280.2767,-197.0734 271.5076,-203.0193 277.1295,-207.19"/>
+<text text-anchor="middle" x="289.4567" y="-220" font-family="Times,serif" font-size="14.00" fill="#000000">Provides</text>
+</g>
+<!-- Gas limit -->
+<g id="node7" class="node">
+<title>Gas limit</title>
+<ellipse fill="none" stroke="#000000" cx="390.9602" cy="-179.8" rx="46.9233" ry="18"/>
+<text text-anchor="middle" x="390.9602" y="-175.6" font-family="Times,serif" font-size="14.00" fill="#000000">Gas limit</text>
+</g>
+<!-- Node&#45;&gt;Gas limit -->
+<g id="edge6" class="edge">
+<title>Node-&gt;Gas limit</title>
+<path fill="none" stroke="#000000" d="M227.099,-262.6097C252.2383,-256.9237 288.5666,-247.0783 317.9602,-232.6 334.1895,-224.606 350.6554,-213.0573 363.8312,-202.7978"/>
+<polygon fill="#000000" stroke="#000000" points="366.3481,-205.267 371.9789,-196.2924 361.9804,-199.7968 366.3481,-205.267"/>
+<text text-anchor="middle" x="369.4567" y="-220" font-family="Times,serif" font-size="14.00" fill="#000000">Provides</text>
+</g>
+<!-- EVM -->
+<g id="node8" class="node">
+<title>EVM</title>
+<ellipse fill="none" stroke="#000000" cx="196.9602" cy="-106.8" rx="32.4827" ry="18"/>
+<text text-anchor="middle" x="196.9602" y="-102.6" font-family="Times,serif" font-size="14.00" fill="#000000">EVM</text>
+</g>
+<!-- From&#45;&gt;EVM -->
+<g id="edge7" class="edge">
+<title>From-&gt;EVM</title>
+<path fill="none" stroke="#000000" d="M57.3799,-168.5537C85.4795,-156.1218 130.9077,-136.0232 162.2662,-122.1495"/>
+<polygon fill="#000000" stroke="#000000" points="163.7828,-125.3058 171.5117,-118.059 160.9506,-118.9043 163.7828,-125.3058"/>
+</g>
+<!-- To&#45;&gt;EVM -->
+<g id="edge8" class="edge">
+<title>To-&gt;EVM</title>
+<path fill="none" stroke="#000000" d="M125.9275,-165.7249C138.7384,-155.0977 156.5409,-140.3296 171.1186,-128.2368"/>
+<polygon fill="#000000" stroke="#000000" points="173.3713,-130.9156 178.8333,-121.8371 168.9021,-125.528 173.3713,-130.9156"/>
+</g>
+<!-- Calldata&#45;&gt;EVM -->
+<g id="edge9" class="edge">
+<title>Calldata-&gt;EVM</title>
+<path fill="none" stroke="#000000" d="M196.9602,-161.7551C196.9602,-153.6828 196.9602,-143.9764 196.9602,-134.9817"/>
+<polygon fill="#000000" stroke="#000000" points="200.4603,-134.8903 196.9602,-124.8904 193.4603,-134.8904 200.4603,-134.8903"/>
+</g>
+<!-- Value&#45;&gt;EVM -->
+<g id="edge10" class="edge">
+<title>Value-&gt;EVM</title>
+<path fill="none" stroke="#000000" d="M272.2761,-164.6744C258.3359,-153.9624 239.4606,-139.4582 224.0935,-127.6498"/>
+<polygon fill="#000000" stroke="#000000" points="226.0327,-124.726 215.9708,-121.4081 221.7676,-130.2765 226.0327,-124.726"/>
+</g>
+<!-- Gas limit&#45;&gt;EVM -->
+<g id="edge11" class="edge">
+<title>Gas limit-&gt;EVM</title>
+<path fill="none" stroke="#000000" d="M357.168,-167.0844C322.636,-154.0904 269.1741,-133.9733 233.6325,-120.5994"/>
+<polygon fill="#000000" stroke="#000000" points="234.7058,-117.2637 224.1138,-117.0176 232.2405,-123.8152 234.7058,-117.2637"/>
+</g>
+<!-- Storage -->
+<g id="node9" class="node">
+<title>Storage</title>
+<ellipse fill="none" stroke="#000000" cx="152.9602" cy="-18" rx="40.5673" ry="18"/>
+<text text-anchor="middle" x="152.9602" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">Storage</text>
+</g>
+<!-- EVM&#45;&gt;Storage -->
+<g id="edge12" class="edge">
+<title>EVM-&gt;Storage</title>
+<path fill="none" stroke="#000000" d="M187.0497,-89.3565C183.8144,-83.506 180.2646,-76.9148 177.1874,-70.8 173.0164,-62.5116 168.7144,-53.3613 164.9142,-45.0391"/>
+<polygon fill="#000000" stroke="#000000" points="168.026,-43.4255 160.7215,-35.7512 161.6459,-46.3056 168.026,-43.4255"/>
+<text text-anchor="middle" x="199.3466" y="-58.2" font-family="Times,serif" font-size="14.00" fill="#000000">Persists</text>
+</g>
+<!-- Logs -->
+<g id="node10" class="node">
+<title>Logs</title>
+<ellipse fill="none" stroke="#000000" cx="241.9602" cy="-18" rx="30.1977" ry="18"/>
+<text text-anchor="middle" x="241.9602" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">Logs</text>
+</g>
+<!-- EVM&#45;&gt;Logs -->
+<g id="edge13" class="edge">
+<title>EVM-&gt;Logs</title>
+<path fill="none" stroke="#000000" d="M208.5814,-89.9487C212.4335,-84.0267 216.5932,-77.2414 219.9602,-70.8 224.1925,-62.7033 228.2241,-53.607 231.6528,-45.2752"/>
+<polygon fill="#000000" stroke="#000000" points="234.9179,-46.5362 235.3765,-35.9513 228.4172,-43.9399 234.9179,-46.5362"/>
+<text text-anchor="middle" x="248.3466" y="-58.2" font-family="Times,serif" font-size="14.00" fill="#000000">Persists</text>
+</g>
+</g>
+</svg>

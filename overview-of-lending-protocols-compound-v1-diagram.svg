@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="520pt" height="150pt" viewBox="0.00 0.00 520.30 149.60">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 145.6)">
+<title>%0</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-145.6 516.2985,-145.6 516.2985,4 -4,4"/>
+<!-- Borrower -->
+<g id="node1" class="node">
+<title>Borrower</title>
+<ellipse fill="none" stroke="#000000" cx="82.3705" cy="-123.6" rx="48.0723" ry="18"/>
+<text text-anchor="middle" x="82.3705" y="-119.4" font-family="Times,serif" font-size="14.00" fill="#000000">Borrower</text>
+</g>
+<!-- Pool -->
+<g id="node2" class="node">
+<title>Pool</title>
+<ellipse fill="none" stroke="#000000" cx="158.3705" cy="-18" rx="28.9929" ry="18"/>
+<text text-anchor="middle" x="158.3705" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">Pool</text>
+</g>
+<!-- Borrower&#45;&gt;Pool -->
+<g id="edge1" class="edge">
+<title>Borrower-&gt;Pool</title>
+<path fill="none" stroke="#000000" d="M41.6885,-113.8305C28.1392,-108.4307 14.4885,-100.1636 6.5457,-87.6 -1.4343,-74.9776 -2.7159,-65.7144 6.5457,-54 20.4168,-36.4552 79.561,-26.566 119.8028,-21.756"/>
+<polygon fill="#000000" stroke="#000000" points="120.2997,-25.2221 129.8397,-20.6136 119.508,-18.267 120.2997,-25.2221"/>
+<text text-anchor="middle" x="72.2829" y="-75" font-family="Times,serif" font-size="14.00" fill="#000000">Supplies collateral.</text>
+<text text-anchor="middle" x="72.2829" y="-58.2" font-family="Times,serif" font-size="14.00" fill="#000000">Pays interest rate (I_a).</text>
+</g>
+<!-- Pool&#45;&gt;Borrower -->
+<g id="edge2" class="edge">
+<title>Pool-&gt;Borrower</title>
+<path fill="none" stroke="#000000" d="M156.0524,-36.1005C153.3809,-51.1205 147.7906,-72.404 136.3705,-87.6 131.9028,-93.5448 126.1496,-98.8172 120.0706,-103.3686"/>
+<polygon fill="#000000" stroke="#000000" points="117.9411,-100.5849 111.6692,-109.1238 121.8972,-106.3598 117.9411,-100.5849"/>
+<text text-anchor="middle" x="196.3088" y="-66.6" font-family="Times,serif" font-size="14.00" fill="#000000">Supplies assets.</text>
+</g>
+<!-- Supplier -->
+<g id="node3" class="node">
+<title>Supplier</title>
+<ellipse fill="none" stroke="#000000" cx="269.3705" cy="-123.6" rx="43.5194" ry="18"/>
+<text text-anchor="middle" x="269.3705" y="-119.4" font-family="Times,serif" font-size="14.00" fill="#000000">Supplier</text>
+</g>
+<!-- Supplier&#45;&gt;Pool -->
+<g id="edge3" class="edge">
+<title>Supplier-&gt;Pool</title>
+<path fill="none" stroke="#000000" d="M266.9988,-105.4792C264.1032,-90.0344 257.8095,-68.151 244.3705,-54 231.5402,-40.4901 212.8605,-31.851 196.1857,-26.4339"/>
+<polygon fill="#000000" stroke="#000000" points="196.7146,-22.9406 186.1327,-23.4626 194.7305,-29.6535 196.7146,-22.9406"/>
+<text text-anchor="middle" x="387.3345" y="-75" font-family="Times,serif" font-size="14.00" fill="#000000">Supplies assets.</text>
+<text text-anchor="middle" x="387.3345" y="-58.2" font-family="Times,serif" font-size="14.00" fill="#000000">Pays interest rate from borrower - reserve_a.</text>
+</g>
+</g>
+</svg>

@@ -1,0 +1,3 @@
+1. The node takes the to, from, calldata, gas limit from the transaction.
+2. The node emulates the EVM.
+3. The node persists the outcome of certain operations (including SSTORE).

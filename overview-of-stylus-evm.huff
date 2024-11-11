@@ -1,0 +1,17 @@
+#define macro MAIN() = takes(0) returns(0) {
+	0x0    calldataload            // Loads calldata to the stack.
+	0xE0   shr                     // Shifts calldata to get the selector.
+	dup0                           // Dupe the selector part of the calldata.
+	0x61bc221a eq COUNTER jumpi    // Jump to the counter code.
+	0xd09de08a eq INCREMENT jumpi  // Jump to the increment code.
+	0x0 0x0 revert                 // We didn't match a selector! Revert!
+	COUNTER:                       // Jump table offset for the counter view.
+		0x0 0x0 sload              // Load the first slot in storage to the stack.
+		mstore                     // Store in memory to return.
+		return                     // Actually return the current value.
+	INCREMENT:                     // Selector that matches the increment function.
+		0x0 0x0 0x0 sload          // Load the counter.
+		0x01 add                   // Increment the counter by 1.
+		sstore                     // Store the incremented count.
+		0x0 0x0 return             // Return to the caller! We're finished.
+}
