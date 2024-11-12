@@ -630,7 +630,7 @@ Infrastructure
 
 Build the "hello-world" crate.
 
-	cd crates/hello-world
+	cd pkg/hello-world
 	make build
 
 ^ If this exists with status 0, success!
@@ -640,7 +640,7 @@ Build the "hello-world" crate.
 : The first instance of someone doing our main task. The goal is to get
 : the test suite passing.
 
-	cd crates/hello-world
+	cd pkg/hello-world
 
 Get the "is_pet" function passing:
 
@@ -663,7 +663,7 @@ Success:
 : search over the inputs is undertaken. The test code itself should break
 : if the invariant isn't okay.
 
-(This is in crates/fizzbuzzer)
+(This is in pkg/fizzbuzzer)
 
 	#[storage]
 	#[entrypoint]
