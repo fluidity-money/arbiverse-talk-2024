@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="827pt" height="295pt" viewBox="0.00 0.00 827.05 294.60">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 290.6)">
+<title>%0</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-290.6 823.0476,-290.6 823.0476,4 -4,4"/>
+<!-- User -->
+<g id="node1" class="node">
+<title>User</title>
+<ellipse fill="none" stroke="#000000" cx="416.3224" cy="-268.6" rx="29.0318" ry="18"/>
+<text text-anchor="middle" x="416.3224" y="-264.4" font-family="Times,serif" font-size="14.00" fill="#000000">User</text>
+</g>
+<!-- Factory -->
+<g id="node2" class="node">
+<title>Factory</title>
+<ellipse fill="none" stroke="#000000" cx="416.3224" cy="-195.6" rx="40.5673" ry="18"/>
+<text text-anchor="middle" x="416.3224" y="-191.4" font-family="Times,serif" font-size="14.00" fill="#000000">Factory</text>
+</g>
+<!-- User&#45;&gt;Factory -->
+<g id="edge1" class="edge">
+<title>User-&gt;Factory</title>
+<path fill="none" stroke="#000000" d="M416.3224,-250.5551C416.3224,-242.4828 416.3224,-232.7764 416.3224,-223.7817"/>
+<polygon fill="#000000" stroke="#000000" points="419.8225,-223.6903 416.3224,-213.6904 412.8225,-223.6904 419.8225,-223.6903"/>
+</g>
+<!-- Lender -->
+<g id="node3" class="node">
+<title>Lender</title>
+<ellipse fill="none" stroke="#000000" cx="280.3224" cy="-106.8" rx="38.2626" ry="18"/>
+<text text-anchor="middle" x="280.3224" y="-102.6" font-family="Times,serif" font-size="14.00" fill="#000000">Lender</text>
+</g>
+<!-- Factory&#45;&gt;Lender -->
+<g id="edge2" class="edge">
+<title>Factory-&gt;Lender</title>
+<path fill="none" stroke="#000000" d="M382.5701,-185.6169C365.5382,-179.6423 345.0898,-170.9776 328.783,-159.6 317.7818,-151.9242 307.4517,-141.349 299.1786,-131.6778"/>
+<polygon fill="#000000" stroke="#000000" points="301.7977,-129.3522 292.7435,-123.8502 296.3904,-133.7976 301.7977,-129.3522"/>
+<text text-anchor="middle" x="433.0921" y="-147" font-family="Times,serif" font-size="14.00" fill="#000000">Creates Token contract using a proxy</text>
+</g>
+<!-- ERC20 -->
+<g id="node4" class="node">
+<title>ERC20</title>
+<ellipse fill="none" stroke="#000000" cx="416.3224" cy="-18" rx="39.4466" ry="18"/>
+<text text-anchor="middle" x="416.3224" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">ERC20</text>
+</g>
+<!-- Factory&#45;&gt;ERC20 -->
+<g id="edge3" class="edge">
+<title>Factory-&gt;ERC20</title>
+<path fill="none" stroke="#000000" d="M454.4545,-189.4366C486.3332,-183.4139 528.1743,-173.1752 538.3224,-159.6 566.4234,-122.0091 566.4234,-91.5909 538.3224,-54 529.1456,-41.7241 494.0521,-32.1765 463.845,-26.0078"/>
+<polygon fill="#000000" stroke="#000000" points="464.3191,-22.5342 453.8327,-24.0463 462.9732,-29.4036 464.3191,-22.5342"/>
+<text text-anchor="middle" x="689.185" y="-102.6" font-family="Times,serif" font-size="14.00" fill="#000000">Deploys the proxy code to the implementation</text>
+</g>
+<!-- Lender&#45;&gt;ERC20 -->
+<g id="edge4" class="edge">
+<title>Lender-&gt;ERC20</title>
+<path fill="none" stroke="#000000" d="M275.6139,-88.8452C273.8092,-77.6858 273.7207,-63.6727 281.295,-54 292.1521,-40.1352 334.1163,-30.4186 368.4165,-24.604"/>
+<polygon fill="#000000" stroke="#000000" points="369.0036,-28.0546 378.3127,-22.9959 367.8808,-21.1452 369.0036,-28.0546"/>
+<text text-anchor="middle" x="408.8361" y="-58.2" font-family="Times,serif" font-size="14.00" fill="#000000">Controls the minting and burning of the token</text>
+</g>
+<!-- Chainlink price feed -->
+<g id="node5" class="node">
+<title>Chainlink price feed</title>
+<ellipse fill="none" stroke="#000000" cx="70.3224" cy="-18" rx="70.1453" ry="18"/>
+<text text-anchor="middle" x="70.3224" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">Chainlink price feed</text>
+</g>
+<!-- Lender&#45;&gt;Chainlink price feed -->
+<g id="edge5" class="edge">
+<title>Lender-&gt;Chainlink price feed</title>
+<path fill="none" stroke="#000000" d="M242.029,-104.653C191.3431,-101.019 105.7616,-91.8787 83.3524,-70.8 76.6298,-64.4766 73.1414,-55.284 71.3973,-46.3353"/>
+<polygon fill="#000000" stroke="#000000" points="74.8298,-45.5903 70.062,-36.1289 67.8889,-46.4984 74.8298,-45.5903"/>
+<text text-anchor="middle" x="177.8074" y="-58.2" font-family="Times,serif" font-size="14.00" fill="#000000">The price oracle for getting value</text>
+</g>
+</g>
+</svg>

@@ -4,7 +4,8 @@
 Reference implementation of a Compound-like stablecoin lending protocol.
 """
 
-import unittest
+import unittest, math
+from hypothesis import given, strategies as st
 
 class MockOracle:
 	price = 1
@@ -14,15 +15,6 @@ class MockOracle:
 		return self.price
 	def value_of_asset(self, a):
 		return self.cur_price() * a
-
-class BadDebt(Exception):
-	pass
-
-class NotAbleToLiquidate(Exception):
-	pass
-
-class NotEnoughCash(Exception):
-	pass
 
 class Timepoint:
 	def __init__(self, time, interest):
@@ -53,14 +45,15 @@ class Token:
 
 	def borrow(self, ticket, cur_time, ausd_amt, token_collateral):
 		usd_collateral = self.oracle.value_of_asset(token_collateral)
-		if self.utilisation_rate(ausd_amt, usd_collateral) > self.COLLATERAL_REQ:
-			raise BadDebt
+		util_rate = self.utilisation_rate(ausd_amt, usd_collateral)
+		assert util_rate < self.COLLATERAL_REQ, f"bad debt: util rate {util_rate} > {self.COLLATERAL_REQ}"
+		ausd_security_deposit = ausd_amt * self.SECURITY_DEPOSIT_RATE
+		ausd_amt -= ausd_security_deposit
 		redemption_amt = token_collateral * (ausd_amt / usd_collateral)
-		security_deposit = redemption_amt * self.SECURITY_DEPOSIT_RATE
-		token_collateral -= security_deposit
-		redemption_amt -= security_deposit
+		token_collateral -= token_collateral * self.SECURITY_DEPOSIT_RATE
+		redemption_amt -= redemption_amt * self.SECURITY_DEPOSIT_RATE
 		self.token_for_redemptions += redemption_amt
-		self.security_deposits += security_deposit
+		self.security_deposits += ausd_security_deposit
 		self.cash_supply += ausd_amt
 		self.borrows[ticket] = [Timepoint(cur_time, 0)]
 		self.collateral[ticket] = token_collateral
@@ -89,14 +82,17 @@ class Token:
 		debt_outstanding = self.debt[ticket] + timepoint.interest
 		token_collateral = self.collateral[ticket]
 		usd_collateral = self.oracle.value_of_asset(token_collateral)
-		if self.utilisation_rate(debt_outstanding, usd_collateral) <= self.COLLATERAL_REQ:
-			raise NotAbleToLiquidate
+		util_rate = self.utilisation_rate(debt_outstanding, usd_collateral)
+		assert util_rate > self.COLLATERAL_REQ, f"not able to liq: util rate: {util_rate}"
 		self.debt[ticket] = 0
-		self.token_collateral -= token_collateral
 		# The amount that's needed to plug this shortfall. Assuming we have it.
 		# We don't have a emergency mode.
+		# This code does NOT have a liquidator incentive.
 		collateral_diff = usd_collateral - debt_outstanding
-		self.security_deposits -= max(collateral_diff, self.security_deposits - collateral_diff)
+		if collateral_diff > self.security_deposits:
+			self.security_deposits = 0
+		else:
+			self.security_deposits -= collateral_diff
 		self.collateral[ticket] = 0
 		self.debt[ticket] = 0
 		self.borrows[ticket][-1].interest = 0
@@ -106,14 +102,22 @@ class Token:
 		# Repay a ticket's debt by paying down the interest on the right side, and
 		# if we can pay down the principal debt, that too.
 		timepoint = self.record_timepoint(ticket, cur_time)
-		debt_outstanding = self.debt[ticket] + timepoint.interest
 		usd_repay = self.oracle.value_of_asset(token_repay)
 		interest = timepoint.interest
-		interest_leftover = usd_repay - interest
-		self.borrows[ticket][-1].interest = max(0, interest - usd_repay)
-		usd_leftover = max(0, interest_leftover - self.debt[ticket])
-		self.debt[ticket] -= interest_leftover
-		return usd_leftover
+		outstanding_interest = self.borrows[ticket][-1].interest
+		leftover = usd_repay
+		if outstanding_interest > leftover:
+			self.borrows[ticket][-1].interest -= leftover
+			return
+		else:
+			self.borrows[ticket][-1].interest = 0
+			leftover -= outstanding_interest
+		outstanding_debt = self.debt[ticket]
+		if outstanding_debt > leftover:
+			self.debt[ticket] -= leftover
+			return
+		else:
+			self.debt[ticket] = 0
 
 	def redeem(self, cash):
 		#= Take the share of the token that's held by this
@@ -141,14 +145,34 @@ class TestToken(unittest.TestCase):
 		cur_time = 2 * 30 * 24 * 60 * 60
 		self.assertEqual(99.0025, self.token.redeem(99.5))
 		self.assertEqual(
-			100.08219178082192,
+			99.5817808219178,
 			self.token.debt_outstanding("Alex", cur_time))
+		self.token.repay("Alex", cur_time, 80)
 		self.assertEqual(
-			0,
-			self.token.repay("Alex", cur_time, 80))
-		self.assertEqual(
-			20.082191780821915,
+			19.581780821917803,
 			self.token.debt_outstanding("Alex", cur_time))
+	@given(st.integers(min_value=1), st.integers(min_value=1))
+	def test_part_3(self, starting_amt, secs_since):
+		"""
+		Test the timepoint code correctly calculating interest. Test that it
+		correctly creates a new timepoint. Test that the borrow behaviour
+		is fine as well.
+		"""
+		collateral = starting_amt * 1.5
+		self.token.borrow("Bob", 0, starting_amt, collateral)
+		starting_amt -= starting_amt * Token.SECURITY_DEPOSIT_RATE
+		collateral -= collateral * Token.SECURITY_DEPOSIT_RATE
+		self.assertEqual(starting_amt, self.token.debt["Bob"])
+		self.token.record_timepoint("Bob", secs_since)
+		assert math.isclose(collateral, self.token.collateral["Bob"]), f"collateral: {collateral} != {self.token.collateral["Bob"]}"
+		self.assertEqual(secs_since, self.token.borrows["Bob"][-1].time)
+		interest_acc = (starting_amt * Token.INTEREST_PER_SEC_RATE) * secs_since
+		assert math.isclose(interest_acc, self.token.borrows["Bob"][-1].interest), f"interest: {haircut} != {self.token.borrows["Bob"][-1].interest}"
+	def test_part_4(self):
+		"""
+		Test that the liquidation functionality works by dropping the value of the
+		asset after someone has LP'd, bringing the protocol into the red.
+		"""
 
 if __name__ == "__main__":
 	unittest.main()

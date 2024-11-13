@@ -1,2 +1,2 @@
-@openzeppelin/contracts-upgradeable/=foundry-libs/openzeppelin-contracts-upgradeable/contracts/
-@openzeppelin/contracts/=foundry-libs/openzeppelin-contracts/contracts/
+@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/

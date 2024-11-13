@@ -1,6 +1,39 @@
 [package]
-name = "lending-stablecoin"
+name = "lendingstablecoin"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "liblendingstablecoin"
+edition = "2021"
+
+[[bin]]
+name = "lendingstablecoin"
+
+[profile.release]
+codegen-units = 1
+panic = "abort"
+opt-level = "z"
+strip = true
+lto = true
+debug = false
+rpath = false
+debug-assertions = false
+incremental = false
+
 [dependencies]
+stylus-sdk = "0.6.0"
+alloy-primitives = "=0.7.6"
+cfg-if = "1.0.0"
+alloy-sol-macro = "=0.7.6"
+alloy-sol-types = "=0.7.6"
+array-concat = "0.5.3"
+motsu = "0.2.0"
+
+[features]
+testing = []
+contract-factory = []
+contract-lending = []
+
+[dev-dependencies]
+proptest = "1.5.0"
